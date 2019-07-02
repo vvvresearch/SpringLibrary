@@ -1,10 +1,10 @@
 package ru.vvvresearch.otuslibrary.dao;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Repository;
 import ru.vvvresearch.otuslibrary.dao.interfaces.AuthorDao;
+import ru.vvvresearch.otuslibrary.dao.mappers.AuthorRowMapper;
 import ru.vvvresearch.otuslibrary.domain.Author;
 
 import java.util.*;
@@ -13,24 +13,12 @@ import java.util.*;
 public class AuthorDaoJdbc implements AuthorDao {
     private final NamedParameterJdbcOperations jdbcNamed;
     private final Map<String, Object> params = new HashMap<>();
-    private final RowMapper<Author> rowMapper = (resultSet, i) -> {
-        Calendar calendar = new GregorianCalendar();
-        calendar.setTime(resultSet.getDate("birthdate"));
-        String country = resultSet.getString("country_key");
-        Locale locale = new Locale(country.toLowerCase(), country);
-        return new Author(
-                resultSet.getInt("id"),
-                resultSet.getString("first_name"),
-                resultSet.getString("last_name"),
-                resultSet.getString("gender"),
-                calendar,
-                locale
-        );
-    };
+    private final AuthorRowMapper authorRowMapper;
 
     @Autowired
-    public AuthorDaoJdbc(NamedParameterJdbcOperations jdbcNamed) {
+    public AuthorDaoJdbc(NamedParameterJdbcOperations jdbcNamed, AuthorRowMapper authorRowMapper) {
         this.jdbcNamed = jdbcNamed;
+        this.authorRowMapper = authorRowMapper;
     }
 
     @Override
@@ -51,25 +39,25 @@ public class AuthorDaoJdbc implements AuthorDao {
     @Override
     public Author getById(int id) {
         params.put("authorId", id);
-        return jdbcNamed.queryForObject("select * from authors where id = :authorId", params, rowMapper);
+        return jdbcNamed.queryForObject("select * from authors where author_id = :authorId", params, authorRowMapper.getRowMapper());
     }
 
     @Override
     public Author getByLastAndFirstName(String lastName, String firstName) {
         params.put("author_lastname", lastName);
         params.put("author_firstname",firstName);
-        return jdbcNamed.queryForObject("select * from authors where last_name = :author_lastname and first_name = :author_firstname", params, rowMapper);
+        return jdbcNamed.queryForObject("select * from authors where last_name = :author_lastname and first_name = :author_firstname", params, authorRowMapper.getRowMapper());
     }
 
     @Override
     public List<Author> getAll() {
-        return jdbcNamed.query("select * from authors", rowMapper);
+        return jdbcNamed.query("select * from authors", authorRowMapper.getRowMapper());
     }
 
     @Override
     public void deleteById(int id) {
         params.put("authorId", id);
-        jdbcNamed.update("delete from authors where id=:authorId", params);
+        jdbcNamed.update("delete from authors where author_id=:authorId", params);
 
     }
 }

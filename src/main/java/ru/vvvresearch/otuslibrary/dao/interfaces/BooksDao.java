@@ -21,4 +21,5 @@ public interface BooksDao {
     List<Book> getAllByAuthorId(Integer id);
 
     List<Book> getAllByGenreId(Integer id);
+
 }
