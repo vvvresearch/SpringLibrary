@@ -7,23 +7,19 @@ import org.springframework.shell.standard.ShellOption;
 import ru.vvvresearch.otuslibrary.domain.Author;
 import ru.vvvresearch.otuslibrary.domain.Book;
 import ru.vvvresearch.otuslibrary.domain.Genre;
-import ru.vvvresearch.otuslibrary.services.interfaces.AuthorService;
 import ru.vvvresearch.otuslibrary.services.interfaces.BookService;
-import ru.vvvresearch.otuslibrary.services.interfaces.GenreService;
 
 import java.util.List;
 
+import static ru.vvvresearch.otuslibrary.shell.CommandHelper.getStringFromList;
+
 @ShellComponent
-public class CommandProcessor {
+public class BookCommands {
     private final BookService bookService;
-    private final AuthorService authorService;
-    private final GenreService genreService;
 
     @Autowired
-    public CommandProcessor(BookService bookService, AuthorService authorService, GenreService genreService) {
+    public BookCommands(BookService bookService) {
         this.bookService = bookService;
-        this.authorService = authorService;
-        this.genreService = genreService;
     }
 
     @ShellMethod("Get list books by author name")
@@ -45,33 +41,10 @@ public class CommandProcessor {
         return getStringFromList(list);
     }
 
-    @ShellMethod("Get all genres")
-    public String genres() {
-        List<Genre> list = genreService.getAll();
+    @ShellMethod("Get all books")
+    public String books() {
+        List<Book> list = bookService.getAllBooks();
         return getStringFromList(list);
     }
-
-    @ShellMethod("Get all authors")
-    public String authors() {
-        List<Author> list = authorService.getAll();
-        return getStringFromList(list);
-    }
-
-    @ShellMethod("addGenre")
-    public String addGenre(@ShellOption String title) {
-        genreService.addGenre(Genre.getBuilder().setTitle(title).build());
-        return "Genre " + title + " added";
-    }
-
-    private String getStringFromList(List list) {
-        StringBuilder stringBuilder = new StringBuilder();
-        if (list != null && list.size() > 0) {
-            list.forEach(stringBuilder::append);
-            return stringBuilder.toString();
-        } else {
-            return "Not found";
-        }
-    }
-
 
 }
